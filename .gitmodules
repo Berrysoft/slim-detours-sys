@@ -1,0 +1,6 @@
+[submodule "third-party/KNSoft.NDK"]
+	path = third-party/KNSoft.NDK
+	url = https://github.com/KNSoft/KNSoft.NDK.git
+[submodule "third-party/KNSoft.SlimDetours"]
+	path = third-party/KNSoft.SlimDetours
+	url = https://github.com/KNSoft/KNSoft.SlimDetours.git
