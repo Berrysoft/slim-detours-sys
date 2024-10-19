@@ -1,0 +1,29 @@
+[package]
+name = "slim-detours-sys"
+version = "0.1.0"
+edition = "2021"
+links = "KNSoft.SlimDetours"
+description = "Rust bindings to KNSoft.SlimDetours"
+license = "MIT"
+authors = ["Berrysoft <Strawberry_Str@hotmail.com>"]
+readme = "README.md"
+repository = "https://github.com/Berrysoft/slim-detours-sys"
+categories = ["external-ffi-bindings", "os::windows-apis"]
+keywords = ["detours", "hooking", "injection"]
+
+[dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Foundation"] }
+
+[build-dependencies]
+cc = "1.1.30"
+
+[dev-dependencies]
+sync-unsafe-cell = "0.1"
+windows-sys = { version = "0.59", features = [
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+] }
+
+[features]
+default = []
+nightly = []
