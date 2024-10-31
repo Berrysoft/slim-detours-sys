@@ -51,7 +51,7 @@ extern "system" {
     ) -> HRESULT;
 
     pub fn SlimDetoursInlineHooks(
-        hModule: HMODULE,
+        bEnable: BOOL,
         ulCount: c_ulong,
         pHooks: *mut DETOUR_INLINE_HOOK,
     ) -> HRESULT;

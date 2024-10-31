@@ -1,6 +1,6 @@
 [package]
 name = "slim-detours-sys"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 links = "KNSoft.SlimDetours"
 description = "Rust bindings to KNSoft.SlimDetours"
