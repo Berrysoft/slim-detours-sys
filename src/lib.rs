@@ -32,9 +32,9 @@ extern "system" {
 
 #[repr(C)]
 pub struct DETOUR_INLINE_HOOK {
-    pszFuncName: PCSTR,
-    ppPointer: *mut *mut c_void,
-    pDetour: *mut c_void,
+    pub pszFuncName: PCSTR,
+    pub ppPointer: *mut *mut c_void,
+    pub pDetour: *mut c_void,
 }
 
 extern "system" {
@@ -59,9 +59,9 @@ extern "system" {
 
 #[repr(C)]
 pub struct DETOUR_FUNC_TABLE_HOOK {
-    ulOffset: c_ulong,
-    ppOldFunc: *mut *mut c_void,
-    pNewFunc: *mut c_void,
+    pub ulOffset: c_ulong,
+    pub ppOldFunc: *mut *mut c_void,
+    pub pNewFunc: *mut c_void,
 }
 
 extern "system" {
