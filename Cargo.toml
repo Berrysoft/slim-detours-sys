@@ -1,6 +1,6 @@
 [package]
 name = "slim-detours-sys"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 links = "KNSoft.SlimDetours"
 description = "Rust bindings to KNSoft.SlimDetours"
@@ -23,7 +23,3 @@ windows-sys = { version = "0.59", features = [
     "Win32_System_SystemInformation",
     "Win32_System_Threading",
 ] }
-
-[features]
-default = []
-nightly = []

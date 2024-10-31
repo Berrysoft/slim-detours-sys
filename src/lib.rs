@@ -1,15 +1,13 @@
-#![cfg_attr(feature = "nightly", feature(c_variadic))]
+#![allow(non_camel_case_types, non_snake_case, clippy::missing_safety_doc)]
 
-#[cfg(feature = "nightly")]
-use std::ffi::VaList;
 use std::{
     ffi::{c_long, c_ulong, c_void},
     ptr::null_mut,
 };
 
 use windows_sys::{
-    core::{HRESULT, PCSTR, PCWSTR},
-    Win32::Foundation::BOOL,
+    core::{GUID, HRESULT, PCSTR, PCWSTR},
+    Win32::Foundation::{BOOL, HMODULE},
 };
 
 pub const DETOUR_INSTRUCTION_TARGET_NONE: *mut c_void = null_mut();
@@ -30,26 +28,83 @@ extern "system" {
         ppTarget: *mut *mut c_void,
         plExtra: *mut c_long,
     ) -> *mut c_void;
+}
 
-    pub fn SlimDetoursEnableHook(
-        Enable: BOOL,
+#[repr(C)]
+pub struct DETOUR_INLINE_HOOK {
+    pszFuncName: PCSTR,
+    ppPointer: *mut *mut c_void,
+    pDetour: *mut c_void,
+}
+
+extern "system" {
+    pub fn SlimDetoursInlineHook(
+        bEnable: BOOL,
         ppPointer: *mut *mut c_void,
         pDetour: *mut c_void,
     ) -> HRESULT;
-    pub fn SlimDetoursSetHook(ppPointer: *mut *mut c_void, pDetour: *mut c_void) -> HRESULT;
-    pub fn SlimDetoursUnsetHook(ppPointer: *mut *mut c_void, pDetour: *mut c_void) -> HRESULT;
 
-    #[cfg(feature = "nightly")]
-    pub fn SlimDetoursEnableHooksV(Enable: BOOL, Count: c_ulong, ArgPtr: VaList) -> HRESULT;
+    pub fn SlimDetoursInitInlineHooks(
+        hModule: HMODULE,
+        ulCount: c_ulong,
+        pHooks: *mut DETOUR_INLINE_HOOK,
+    ) -> HRESULT;
+
+    pub fn SlimDetoursInlineHooks(
+        hModule: HMODULE,
+        ulCount: c_ulong,
+        pHooks: *mut DETOUR_INLINE_HOOK,
+    ) -> HRESULT;
 }
 
-extern "C" {
-    pub fn SlimDetoursEnableHooks(Enable: BOOL, Count: c_ulong, ...) -> HRESULT;
-    pub fn SlimDetoursSetHooks(Count: c_ulong, ...) -> HRESULT;
-    pub fn SlimDetoursUnsetHooks(Count: c_ulong, ...) -> HRESULT;
+#[repr(C)]
+pub struct DETOUR_FUNC_TABLE_HOOK {
+    ulOffset: c_ulong,
+    ppOldFunc: *mut *mut c_void,
+    pNewFunc: *mut c_void,
 }
 
-#[allow(non_camel_case_types)]
+extern "system" {
+    pub fn SlimDetoursFuncTableHook(
+        pFuncTable: *mut *mut c_void,
+        ulOffset: c_ulong,
+        ppOldFunc: *mut *mut c_void,
+        pNewFunc: *mut c_void,
+    ) -> HRESULT;
+
+    pub fn SlimDetoursFuncTableHooks(
+        bEnable: BOOL,
+        pFuncTable: *mut *mut c_void,
+        ulCount: c_ulong,
+        pHooks: *mut DETOUR_FUNC_TABLE_HOOK,
+    ) -> HRESULT;
+
+    pub fn SlimDetoursCOMHooks(
+        bEnable: BOOL,
+        rCLSID: &GUID,
+        rIID: &GUID,
+        ulCount: c_ulong,
+        pHooks: *mut DETOUR_FUNC_TABLE_HOOK,
+    ) -> HRESULT;
+}
+
+#[inline(always)]
+pub unsafe fn SlimDetoursCOMHook(
+    rCLSID: &GUID,
+    rIID: &GUID,
+    ulOffset: c_ulong,
+    ppOldFunc: *mut *mut c_void,
+    pNewFunc: *mut c_void,
+) -> HRESULT {
+    let mut hook = DETOUR_FUNC_TABLE_HOOK {
+        ulOffset,
+        ppOldFunc,
+        pNewFunc,
+    };
+    let enable = if !ppOldFunc.is_null() { 1 } else { 0 };
+    SlimDetoursCOMHooks(enable, rCLSID, rIID, 1, &mut hook)
+}
+
 pub type DETOUR_DELAY_ATTACH_CALLBACK = Option<
     unsafe extern "system" fn(
         Result: HRESULT,
@@ -86,7 +141,6 @@ mod tests {
     static SLEPT: AtomicI32 = AtomicI32::new(0);
 
     // Detour function that replaces the Sleep API.
-    #[allow(non_snake_case)]
     unsafe extern "system" fn TimedSleep(dwMilliseconds: u32) {
         // Save the before and after times around calling the Sleep API.
         let dwBeg: u32 = GetTickCount();
@@ -102,13 +156,13 @@ mod tests {
             let tru = TRUE_SLEEP.get() as *mut *mut c_void;
             let new = TimedSleep as *mut c_void;
 
-            SlimDetoursEnableHook(1, tru, new);
+            SlimDetoursInlineHook(1, tru, new);
 
             Sleep(500);
             let slept = SLEPT.load(Ordering::Acquire);
             assert_ne!(SLEPT.load(Ordering::Acquire), 0);
 
-            SlimDetoursEnableHook(0, tru, new);
+            SlimDetoursInlineHook(0, tru, new);
             Sleep(500);
             assert_eq!(slept, SLEPT.load(Ordering::Acquire));
         }

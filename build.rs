@@ -2,12 +2,13 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     let files = [
         "Disassembler.c",
+        "FuncTableHook.c",
+        "InlineHook.c",
         "Instruction.c",
         "Memory.c",
         "Thread.c",
         "Trampoline.c",
         "Transaction.c",
-        "Wrapper.c",
     ];
     let mut build = cc::Build::new();
 
