@@ -6,15 +6,29 @@ use std::{
 };
 
 use windows_sys::{
-    core::{BOOL, GUID, HRESULT, PCSTR, PCWSTR},
+    core::{BOOL, HRESULT, PCSTR},
     Win32::Foundation::HMODULE,
 };
 
 pub const DETOUR_INSTRUCTION_TARGET_NONE: *mut c_void = null_mut();
 pub const DETOUR_INSTRUCTION_TARGET_DYNAMIC: *mut c_void = -1i64 as *mut c_void;
 
+#[repr(C)]
+pub struct DETOUR_TRANSACTION_OPTIONS {
+    pub fSuspendThreads: BOOL,
+}
+
 extern "system" {
-    pub fn SlimDetoursTransactionBegin() -> HRESULT;
+    pub fn SlimDetoursTransactionBeginEx(pOptions: *mut DETOUR_TRANSACTION_OPTIONS) -> HRESULT;
+}
+
+#[inline(always)]
+pub unsafe fn SlimDetoursTransactionBegin() -> HRESULT {
+    let mut options = DETOUR_TRANSACTION_OPTIONS { fSuspendThreads: 1 };
+    SlimDetoursTransactionBeginEx(&mut options)
+}
+
+extern "system" {
     pub fn SlimDetoursTransactionAbort() -> HRESULT;
     pub fn SlimDetoursTransactionCommit() -> HRESULT;
 
@@ -28,6 +42,8 @@ extern "system" {
         ppTarget: *mut *mut c_void,
         plExtra: *mut c_long,
     ) -> *mut c_void;
+
+    pub fn SlimDetoursUninitialize() -> HRESULT;
 }
 
 #[repr(C)]
@@ -54,74 +70,6 @@ extern "system" {
         bEnable: BOOL,
         ulCount: c_ulong,
         pHooks: *mut DETOUR_INLINE_HOOK,
-    ) -> HRESULT;
-}
-
-#[repr(C)]
-pub struct DETOUR_FUNC_TABLE_HOOK {
-    pub ulOffset: c_ulong,
-    pub ppOldFunc: *mut *mut c_void,
-    pub pNewFunc: *mut c_void,
-}
-
-extern "system" {
-    pub fn SlimDetoursFuncTableHook(
-        pFuncTable: *mut *mut c_void,
-        ulOffset: c_ulong,
-        ppOldFunc: *mut *mut c_void,
-        pNewFunc: *mut c_void,
-    ) -> HRESULT;
-
-    pub fn SlimDetoursFuncTableHooks(
-        bEnable: BOOL,
-        pFuncTable: *mut *mut c_void,
-        ulCount: c_ulong,
-        pHooks: *mut DETOUR_FUNC_TABLE_HOOK,
-    ) -> HRESULT;
-
-    pub fn SlimDetoursCOMHooks(
-        bEnable: BOOL,
-        rCLSID: &GUID,
-        rIID: &GUID,
-        ulCount: c_ulong,
-        pHooks: *mut DETOUR_FUNC_TABLE_HOOK,
-    ) -> HRESULT;
-}
-
-#[inline(always)]
-pub unsafe fn SlimDetoursCOMHook(
-    rCLSID: &GUID,
-    rIID: &GUID,
-    ulOffset: c_ulong,
-    ppOldFunc: *mut *mut c_void,
-    pNewFunc: *mut c_void,
-) -> HRESULT {
-    let mut hook = DETOUR_FUNC_TABLE_HOOK {
-        ulOffset,
-        ppOldFunc,
-        pNewFunc,
-    };
-    let enable = if !ppOldFunc.is_null() { 1 } else { 0 };
-    SlimDetoursCOMHooks(enable, rCLSID, rIID, 1, &mut hook)
-}
-
-pub type DETOUR_DELAY_ATTACH_CALLBACK = Option<
-    unsafe extern "system" fn(
-        Result: HRESULT,
-        ppPointer: *mut *mut c_void,
-        DllName: PCWSTR,
-        Function: PCSTR,
-        Context: *mut c_void,
-    ),
->;
-extern "system" {
-    pub fn SlimDetoursDelayAttach(
-        ppPointer: *mut *mut c_void,
-        pDetour: *mut c_void,
-        DllName: PCWSTR,
-        Function: PCSTR,
-        Callback: DETOUR_DELAY_ATTACH_CALLBACK,
-        Context: *mut c_void,
     ) -> HRESULT;
 }
 

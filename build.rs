@@ -2,7 +2,6 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     let files = [
         "Disassembler.c",
-        "FuncTableHook.c",
         "InlineHook.c",
         "Instruction.c",
         "Memory.c",
@@ -22,5 +21,6 @@ fn main() {
                 .map(|name| format!("third-party/KNSoft.SlimDetours/Source/SlimDetours/{name}")),
         )
         .cpp(false)
+        .std("c17")
         .compile("KNSoft.SlimDetours");
 }
