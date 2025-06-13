@@ -19,7 +19,7 @@ fn main() {
         .files(
             files
                 .iter()
-                .map(|name| format!("third-party/KNSoft.SlimDetours/Source/SlimDetours/{}", name)),
+                .map(|name| format!("third-party/KNSoft.SlimDetours/Source/SlimDetours/{name}")),
         )
         .cpp(false)
         .compile("KNSoft.SlimDetours");

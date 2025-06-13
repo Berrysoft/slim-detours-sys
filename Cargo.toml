@@ -12,14 +12,14 @@ categories = ["external-ffi-bindings", "os::windows-apis"]
 keywords = ["detours", "hooking", "injection"]
 
 [dependencies]
-windows-sys = { version = "0.59", features = ["Win32_Foundation"] }
+windows-sys = { version = "0.60", features = ["Win32_Foundation"] }
 
 [build-dependencies]
 cc = "1.1.30"
 
 [dev-dependencies]
 sync-unsafe-cell = "0.1"
-windows-sys = { version = "0.59", features = [
+windows-sys = { version = "0.60", features = [
     "Win32_System_SystemInformation",
     "Win32_System_Threading",
 ] }

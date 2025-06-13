@@ -6,8 +6,8 @@ use std::{
 };
 
 use windows_sys::{
-    core::{GUID, HRESULT, PCSTR, PCWSTR},
-    Win32::Foundation::{BOOL, HMODULE},
+    core::{BOOL, GUID, HRESULT, PCSTR, PCWSTR},
+    Win32::Foundation::HMODULE,
 };
 
 pub const DETOUR_INSTRUCTION_TARGET_NONE: *mut c_void = null_mut();
